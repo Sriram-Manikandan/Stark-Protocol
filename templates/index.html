@@ -1,0 +1,1783 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050811">
+  <title>STARK PROTOCOL // JARVIS & ULTRON</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050811;
+      --panel: #0a0f1d;
+      --panel-border: rgba(0, 229, 255, 0.22);
+      --line: #162235;
+      --muted: #798b9e;
+      --text: #f0f6fc;
+      --accent: #00e5ff;
+      --accent-dim: rgba(0, 229, 255, 0.12);
+      --accent-glow: 0, 229, 255;
+      --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --font-hud: 'Orbitron', sans-serif;
+    }
+
+    .persona-ultron {
+      --bg: #090508;
+      --panel: #130a10;
+      --panel-border: rgba(255, 42, 85, 0.28);
+      --line: #2b131a;
+      --accent: #ff2a55;
+      --accent-dim: rgba(255, 42, 85, 0.12);
+      --accent-glow: 255, 42, 85;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 20%, rgba(var(--accent-glow), 0.08) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 80%, rgba(var(--accent-glow), 0.04) 0%, transparent 40%),
+                  var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      transition: background 0.4s ease, color 0.4s ease;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Cyber Grid Overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: auto;
+      padding: 16px 24px 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HUD Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-hud);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: var(--text);
+    }
+    .brand-logo {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 16px var(--accent), 0 0 30px var(--accent);
+      transition: all 0.3s;
+    }
+    .header-pills {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .hud-badge.live {
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .hud-badge.live::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse-dot 1.5s infinite;
+    }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Stage: Arc Reactor Visualizer */
+    .stage {
+      flex: 1;
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 12px 0;
+    }
+
+    .orb-zone {
+      width: 250px;
+      height: 250px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      margin-bottom: 8px;
+    }
+    .orb-halo {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(var(--accent-glow), 0.25);
+      box-shadow: 0 0 50px rgba(var(--accent-glow), 0.12), inset 0 0 40px rgba(var(--accent-glow), 0.08);
+      animation: breathe-halo 6s ease-in-out infinite;
+    }
+    .orb-ring {
+      position: absolute;
+      inset: 22px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(var(--accent-glow), 0.35);
+      transform: rotateX(68deg);
+      animation: rotate-ring 14s linear infinite;
+    }
+    .orb-ring.two {
+      inset: 38px;
+      border-style: dotted;
+      border-width: 2px;
+      transform: rotateY(68deg);
+      animation: rotate-ring-rev 18s linear infinite;
+    }
+    .orb-ring.three {
+      inset: 12px;
+      border: 1px solid rgba(var(--accent-glow), 0.18);
+      transform: rotateX(72deg) rotateZ(45deg);
+      animation: rotate-ring 22s linear infinite;
+    }
+    .orb-core {
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle at 45% 40%, #ffffff 0%, #b4f3ff 6%, #00e5ff 16%, #0088cc 35%, #051c2c 65%, #040813 90%);
+      box-shadow: 0 0 35px rgba(var(--accent-glow), 0.75), 0 0 90px rgba(var(--accent-glow), 0.35), inset 0 0 25px rgba(255,255,255,0.7);
+      animation: core-idle 4s ease-in-out infinite;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .persona-ultron .orb-core {
+      background: radial-gradient(circle at 45% 40%, #ffffff 0%, #ffc0cc 6%, #ff2a55 16%, #b30026 35%, #2b030b 65%, #0e0205 90%);
+      box-shadow: 0 0 35px rgba(var(--accent-glow), 0.75), 0 0 90px rgba(var(--accent-glow), 0.35), inset 0 0 25px rgba(255,255,255,0.7);
+    }
+
+    /* Core States */
+    .orb-zone.thinking .orb-core { animation: core-thinking 0.8s ease-in-out infinite alternate; }
+    .orb-zone.speaking .orb-core { animation: core-speaking 0.45s ease-in-out infinite alternate; }
+    .orb-zone.listening .orb-core {
+      animation: core-listening 1s ease-in-out infinite alternate;
+      box-shadow: 0 0 50px rgba(var(--accent-glow), 0.9), 0 0 120px rgba(var(--accent-glow), 0.5);
+    }
+
+    @keyframes rotate-ring { to { transform: rotateX(68deg) rotateZ(360deg); } }
+    @keyframes rotate-ring-rev { to { transform: rotateY(68deg) rotateZ(-360deg); } }
+    @keyframes breathe-halo { 0%,100% { transform: scale(0.97); opacity: 0.6; } 50% { transform: scale(1.03); opacity: 1; } }
+    @keyframes core-idle { 0%,100% { transform: scale(0.96); filter: brightness(0.92); } 50% { transform: scale(1.04); filter: brightness(1.15); } }
+    @keyframes core-thinking { 0% { transform: scale(0.92); filter: brightness(0.85); } 100% { transform: scale(1.08); filter: brightness(1.3); } }
+    @keyframes core-speaking { 0% { transform: scale(0.95); } 100% { transform: scale(1.12); filter: brightness(1.35); } }
+    @keyframes core-listening { 0% { transform: scale(0.98); } 100% { transform: scale(1.08); } }
+
+    /* Audio Equalizer Bars */
+    .eq-bars {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 14px;
+      margin-top: 4px;
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    .orb-zone.speaking ~ .eq-bars,
+    .orb-zone.listening ~ .eq-bars { opacity: 1; }
+    .eq-bar {
+      width: 3px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .orb-zone.speaking ~ .eq-bars .eq-bar,
+    .orb-zone.listening ~ .eq-bars .eq-bar {
+      animation: eq-wave 0.5s ease-in-out infinite alternate;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.1s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.3s; }
+    .eq-bar:nth-child(5) { animation-delay: 0.15s; }
+    .eq-bar:nth-child(6) { animation-delay: 0.25s; }
+    .eq-bar:nth-child(7) { animation-delay: 0.05s; }
+    @keyframes eq-wave { 0% { height: 3px; } 100% { height: 18px; } }
+
+    .state {
+      font-family: var(--font-hud);
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+    .assistant-name {
+      font-family: var(--font-hud);
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      margin: 2px 0;
+      text-shadow: 0 0 25px rgba(var(--accent-glow), 0.4);
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    /* Floating STOP SPEECH Banner */
+    .stop-banner {
+      display: none;
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: #dc2626;
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-family: var(--font-hud);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      box-shadow: 0 0 35px rgba(220, 38, 38, 0.7), 0 4px 15px rgba(0,0,0,0.5);
+      border: 1px solid #f87171;
+      cursor: pointer;
+      animation: pulse-stop 1.2s infinite;
+      transition: all 0.2s;
+    }
+    .stop-banner:hover {
+      background: #ef4444;
+      transform: translateX(-50%) scale(1.05);
+    }
+    @keyframes pulse-stop {
+      0%,100% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.6); }
+      50% { box-shadow: 0 0 50px rgba(220, 38, 38, 0.95); }
+    }
+
+    /* Persona Switcher */
+    .persona-selector {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0 14px;
+    }
+    .persona-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-family: var(--font-hud);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .persona-tab:hover {
+      border-color: rgba(var(--accent-glow), 0.4);
+      color: var(--text);
+    }
+    .persona-tab.active {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 20px rgba(var(--accent-glow), 0.2);
+    }
+
+    /* System Assistant Quick Actions Bar */
+    .assistant-actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 12px;
+      margin-bottom: 10px;
+    }
+    .action-label {
+      font-family: var(--font-hud);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .app-pill {
+      background: #111a28;
+      border: 1px solid #1f2e45;
+      color: #9cb0c4;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .app-pill:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--accent-glow), 0.25);
+    }
+
+    /* Conversation Area */
+    .conversation-container {
+      width: min(880px, 100%);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .conversation {
+      max-height: 240px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.05);
+      scroll-behavior: smooth;
+    }
+    .conversation:empty { display: none; }
+    .bubble {
+      max-width: 88%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      border: 1px solid transparent;
+      overflow-wrap: break-word;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .bubble.user {
+      align-self: flex-end;
+      background: #142033;
+      border-color: #243550;
+      color: #eaf3ff;
+      border-bottom-right-radius: 3px;
+    }
+    .bubble.jarvis {
+      align-self: flex-start;
+      background: #091322;
+      border-color: rgba(0, 229, 255, 0.25);
+      color: #e0f2fe;
+      border-bottom-left-radius: 3px;
+    }
+    .bubble.ultron {
+      align-self: flex-start;
+      background: #190910;
+      border-color: rgba(255, 42, 85, 0.3);
+      color: #ffe4e8;
+      border-bottom-left-radius: 3px;
+    }
+    .bubble .speaker-tag {
+      font-family: var(--font-hud);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bubble.jarvis .speaker-tag { color: #00e5ff; }
+    .bubble.ultron .speaker-tag { color: #ff2a55; }
+    .bubble.user .speaker-tag { color: #94a3b8; }
+
+    .bubble pre {
+      background: #040810;
+      border: 1px solid #1a273b;
+      padding: 10px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #a5f3fc;
+      margin: 8px 0;
+    }
+    .bubble code {
+      font-family: var(--font-mono);
+      background: rgba(255,255,255,0.08);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* Interactive CLASH ARENA Side-by-Side Arena */
+    .clash-arena-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 14, 0.88);
+      backdrop-filter: blur(14px);
+      z-index: 200;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .clash-arena-modal.open { display: flex; align-items: center; justify-content: center; }
+    .clash-arena-card {
+      width: min(1100px, 100%);
+      background: #090e1a;
+      border: 1px solid #23354d;
+      border-radius: 14px;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .clash-arena-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(0,0,0,0.4);
+      border-bottom: 1px solid #1c2b3e;
+      font-family: var(--font-hud);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+    }
+    .clash-arena-topic-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid #1c2b3e;
+    }
+    .clash-arena-topic-bar input {
+      flex: 1;
+      background: #060912;
+      border: 1px solid #23354d;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      outline: none;
+    }
+    .clash-arena-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 380px;
+      max-height: 520px;
+    }
+    .clash-side {
+      display: flex;
+      flex-direction: column;
+      padding: 18px 20px;
+      overflow-y: auto;
+    }
+    .clash-side.jarvis-side {
+      background: rgba(0, 229, 255, 0.02);
+      border-right: 1px solid #1c2b3e;
+    }
+    .clash-side.ultron-side {
+      background: rgba(255, 42, 85, 0.02);
+    }
+    .clash-fighter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .clash-fighter-title {
+      font-family: var(--font-hud);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+    }
+    .jarvis-side .clash-fighter-title { color: #00e5ff; }
+    .ultron-side .clash-fighter-title { color: #ff2a55; }
+    .clash-voice-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+    }
+    .clash-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+    .clash-bubble {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      border: 1px solid;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .clash-bubble.jarvis {
+      background: #081424;
+      border-color: rgba(0, 229, 255, 0.3);
+      color: #e0f2fe;
+    }
+    .clash-bubble.ultron {
+      background: #1a0810;
+      border-color: rgba(255, 42, 85, 0.35);
+      color: #ffe4e8;
+    }
+    .clash-round-num {
+      font-family: var(--font-hud);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      margin-bottom: 4px;
+      opacity: 0.7;
+    }
+    .clash-arena-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid #1c2b3e;
+    }
+
+    /* Dual Review Card (Mentor vs Adversary Split-Screen) */
+    .dual-review-box {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    }
+    .dual-review-box.open { display: block; }
+    .dual-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--line);
+      font-family: var(--font-hud);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+    }
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .dual-col {
+      padding: 18px 20px;
+      overflow-y: auto;
+      max-height: 400px;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .dual-col.jarvis-col {
+      border-right: 1px solid var(--line);
+      background: rgba(0, 229, 255, 0.02);
+    }
+    .dual-col.ultron-col {
+      background: rgba(255, 42, 85, 0.02);
+    }
+    .dual-title {
+      font-family: var(--font-hud);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .jarvis-col .dual-title { color: #00e5ff; }
+    .ultron-col .dual-title { color: #ff2a55; }
+    .dual-text {
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      color: #cbd5e1;
+    }
+    .dual-loader {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--muted);
+      font-family: var(--font-hud);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      animation: breathe-halo 1.5s infinite alternate;
+    }
+
+    /* Active File Pill */
+    .active-file-pill {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+    .active-file-pill.visible { display: flex; }
+    .active-file-name { color: var(--accent); font-weight: 600; }
+    .pill-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* Composer */
+    .composer-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .composer-card:focus-within {
+      border-color: rgba(var(--accent-glow), 0.5);
+      box-shadow: 0 0 25px rgba(var(--accent-glow), 0.15);
+    }
+    textarea {
+      width: 100%;
+      min-height: 46px;
+      max-height: 140px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    textarea::placeholder { color: #536477; }
+    .btn-group {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: #111a28;
+      color: #9cb0c4;
+      font-family: var(--font-hud);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 9px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      min-height: 38px;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      border-color: var(--accent);
+      color: #ffffff;
+      background: #162438;
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #030811;
+      font-weight: 800;
+      box-shadow: 0 0 18px rgba(var(--accent-glow), 0.35);
+    }
+    .btn.primary:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 28px rgba(var(--accent-glow), 0.6);
+    }
+    .btn.danger {
+      background: #3b0d14;
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+    .btn.danger:hover {
+      background: #dc2626;
+      color: #ffffff;
+    }
+    .btn.purple {
+      background: #1b122c;
+      border-color: #a855f7;
+      color: #e9d5ff;
+    }
+    .btn.purple:hover {
+      background: #7e22ce;
+      color: #ffffff;
+    }
+    .btn.recording {
+      background: #dc2626 !important;
+      border-color: #f87171 !important;
+      color: #ffffff !important;
+      animation: pulse-stop 1.2s infinite;
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Sub Toolbar */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      padding: 0 4px;
+    }
+    .controls-left, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .folder-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px dashed var(--line);
+      padding: 5px 12px;
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      transition: all 0.2s;
+    }
+    .folder-trigger:hover, .folder-trigger.connected {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+    select.voice-picker {
+      background: #0a101b;
+      color: #9cb0c4;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-family: inherit;
+      font-size: 10px;
+      outline: none;
+      max-width: 240px;
+    }
+    .toggle-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    /* File Drawer */
+    .file-drawer {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .file-drawer.open { display: block; }
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,0.3);
+    }
+    .drawer-head input {
+      flex: 1;
+      background: #060a13;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      outline: none;
+    }
+    .drawer-body {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 220px;
+    }
+    .file-tree {
+      overflow-y: auto;
+      border-right: 1px solid var(--line);
+      padding: 6px;
+    }
+    .tree-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tree-item:hover {
+      background: rgba(var(--accent-glow), 0.1);
+      color: var(--accent);
+    }
+    .file-preview-pane {
+      padding: 10px 14px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .app { padding: 12px 14px; }
+      .orb-zone { width: 190px; height: 190px; }
+      .orb-core { width: 95px; height: 95px; }
+      .assistant-name { font-size: 19px; }
+      .stage { min-height: 270px; }
+      .dual-grid, .clash-arena-grid { grid-template-columns: 1fr; }
+      .drawer-body { grid-template-columns: 140px 1fr; }
+      .btn-group { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <span class="brand-logo"></span>
+        <span>STARK PROTOCOL</span>
+        <span style="color:#475569;font-weight:400">//</span>
+        <span style="font-size:12px;color:var(--muted)">DUAL-CORE</span>
+      </div>
+      <div class="header-pills">
+        <span class="hud-badge live" id="sys-status">SYS ONLINE</span>
+        <span class="hud-badge" id="hud-folder">FOLDER: NONE</span>
+        <span class="hud-badge" style="font-family:var(--font-mono)">{{ model }}</span>
+      </div>
+    </header>
+
+    <!-- Stage (Orb & Persona Status) -->
+    <main class="stage" id="stage">
+      <div class="orb-zone" id="orb-zone">
+        <div class="orb-halo"></div>
+        <div class="orb-ring"></div>
+        <div class="orb-ring two"></div>
+        <div class="orb-ring three"></div>
+        <div class="orb-core"></div>
+      </div>
+      <div class="eq-bars">
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+      </div>
+      <div class="state" id="state-label">SYSTEMS ONLINE</div>
+      <div class="assistant-name" id="name-label">J.A.R.V.I.S.</div>
+      <div class="tagline" id="tagline-label">Personal Laptop Assistant // Voice: Microsoft Mark</div>
+    </main>
+
+    <!-- Floating STOP Button (Always visible when speaking) -->
+    <button class="stop-banner" id="global-stop">
+      ■ STOP SPEECH (ESC)
+    </button>
+
+    <!-- Interaction & Chat Area -->
+    <section class="conversation-container">
+      <!-- Persona Switcher -->
+      <div class="persona-selector">
+        <button class="persona-tab active" data-persona="jarvis">
+          <span>🟦</span> J.A.R.V.I.S. (MARK)
+        </button>
+        <button class="persona-tab" data-persona="ultron">
+          <span>🟥</span> U.L.T.R.O.N. (DAVID)
+        </button>
+      </div>
+
+      <!-- Laptop & Personal Assistant Quick Launcher Tray -->
+      <div class="assistant-actions-bar">
+        <span class="action-label">⚡ LAPTOP ACTIONS:</span>
+        <button class="app-pill" data-app="calculator">🧮 Calculator</button>
+        <button class="app-pill" data-app="notepad">📝 Notepad</button>
+        <button class="app-pill" data-app="explorer">📁 File Explorer</button>
+        <button class="app-pill" data-app="taskmgr">⚡ Task Manager</button>
+        <button class="app-pill" data-app="browser">🌐 Web Browser</button>
+        <button class="app-pill" data-app="terminal">💻 PowerShell</button>
+      </div>
+
+      <!-- Messages Stream -->
+      <div class="conversation" id="conversation" aria-live="polite"></div>
+
+      <!-- Active File Context Bar -->
+      <div class="active-file-pill" id="file-pill">
+        <span>INSPECTION TARGET: <span class="active-file-name" id="file-pill-name"></span></span>
+        <div class="pill-actions">
+          <button class="btn primary" id="dual-analyze-btn" style="min-height:30px;padding:4px 12px;font-size:10px">
+            ⚡ DUAL WAR-ROOM AUDIT
+          </button>
+          <button class="btn" id="file-pill-clear" style="min-height:30px;padding:4px 10px;font-size:10px">
+            REMOVE
+          </button>
+        </div>
+      </div>
+
+      <!-- Dual War-Room Split Card -->
+      <div class="dual-review-box" id="dual-box">
+        <div class="dual-header">
+          <span>⚡ DUAL WAR-ROOM CODE AUDIT</span>
+          <span id="dual-filename-badge" style="color:var(--muted)"></span>
+          <button class="btn" id="close-dual-btn" style="min-height:28px;padding:2px 10px;font-size:10px">CLOSE</button>
+        </div>
+        <div class="dual-grid">
+          <div class="dual-col jarvis-col">
+            <div class="dual-title">🟦 J.A.R.V.I.S. — ARCHITECTURE & PATTERNS</div>
+            <div class="dual-text" id="jarvis-analysis"></div>
+          </div>
+          <div class="dual-col ultron-col">
+            <div class="dual-title">🟥 U.L.T.R.O.N. — VULNERABILITIES & RED-TEAM</div>
+            <div class="dual-text" id="ultron-analysis"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Composer Input -->
+      <div class="composer-card">
+        <textarea id="prompt-input" placeholder="Ask Jarvis anything or say 'Open Calculator', 'Open Notepad'…"></textarea>
+        <div class="btn-group">
+          <button class="btn" id="mic-btn" title="Speak via microphone">◉ SPEAK</button>
+          <button class="btn danger" id="inline-stop-btn" style="display:none">■ STOP</button>
+          <button class="btn purple" id="debate-btn" title="Open Interactive Clash Arena">🔥 CLASH</button>
+          <button class="btn primary" id="send-btn">SEND ↗</button>
+        </div>
+      </div>
+
+      <!-- Controls & Settings Bar -->
+      <div class="controls-bar">
+        <div class="controls-left">
+          <button class="folder-trigger" id="folder-btn">▤ CONNECT PROJECT FOLDER</button>
+          <span id="folder-status-text">No folder selected</span>
+        </div>
+        <div class="controls-right">
+          <label class="toggle-wrap">
+            <input type="checkbox" id="voice-reply-toggle" checked>
+            <span>VOICE REPLIES</span>
+          </label>
+          <select class="voice-picker" id="voice-select" title="Speech Voice"></select>
+        </div>
+      </div>
+
+      <!-- File Browser Drawer -->
+      <div class="file-drawer" id="file-drawer">
+        <div class="drawer-head">
+          <input id="drawer-search" placeholder="Search project files...">
+          <button class="btn" id="choose-folder-btn" style="min-height:30px;padding:4px 12px;font-size:10px">CHOOSE FOLDER</button>
+          <button class="btn" id="close-drawer-btn" style="min-height:30px;padding:4px 10px;font-size:10px">CLOSE</button>
+        </div>
+        <div class="drawer-body">
+          <div class="file-tree" id="drawer-file-list"></div>
+          <pre class="file-preview-pane" id="drawer-preview">Select a folder to browse project files in read-only mode.</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Side-by-Side CLASH ARENA Modal -->
+    <div class="clash-arena-modal" id="clash-arena">
+      <div class="clash-arena-card">
+        <div class="clash-arena-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="color:#ff2a55">🔥</span>
+            <span>CLASH ARENA: JARVIS VS ULTRON</span>
+          </div>
+          <button class="btn" id="close-clash-btn" style="min-height:28px;padding:2px 10px;font-size:10px">✕ CLOSE ARENA</button>
+        </div>
+
+        <div class="clash-arena-topic-bar">
+          <span style="font-family:var(--font-hud);font-size:11px;color:var(--muted)">TOPIC:</span>
+          <input id="clash-topic-input" placeholder="Enter debate topic (e.g. Microservices vs Monolith, Python vs Go)...">
+          <button class="btn primary" id="clash-start-btn" style="min-height:32px;padding:5px 15px;font-size:11px">CLASH ⚔</button>
+        </div>
+
+        <div class="clash-arena-grid">
+          <!-- Jarvis Left Side -->
+          <div class="clash-side jarvis-side">
+            <div class="clash-fighter-header">
+              <div class="clash-fighter-title">🟦 J.A.R.V.I.S.</div>
+              <span class="clash-voice-badge">VOICE: MARK</span>
+            </div>
+            <div class="clash-stream" id="jarvis-clash-stream">
+              <div style="color:var(--muted);font-size:12px;font-style:italic">Ready to defend architectural principles, sir.</div>
+            </div>
+          </div>
+
+          <!-- Ultron Right Side -->
+          <div class="clash-side ultron-side">
+            <div class="clash-fighter-header">
+              <div class="clash-fighter-title">🟥 U.L.T.R.O.N.</div>
+              <span class="clash-voice-badge">VOICE: DAVID</span>
+            </div>
+            <div class="clash-stream" id="ultron-clash-stream">
+              <div style="color:var(--muted);font-size:12px;font-style:italic">State your thesis, human. I will dismantle it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="clash-arena-foot">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)" id="clash-status-text">Set topic and click CLASH to initiate debate</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn purple" id="clash-next-round-btn" style="display:none;min-height:32px;padding:5px 14px;font-size:11px">⚡ NEXT CLASH ROUND</button>
+            <button class="btn danger" id="clash-stop-btn" style="display:none;min-height:32px;padding:5px 12px;font-size:11px">■ STOP SPEECH</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Application State ---
+    const state = {
+      persona: 'jarvis',
+      history: [],
+      selectedFile: null,
+      folderName: null,
+      voices: [],
+      markVoice: null,
+      davidVoice: null,
+      isSpeaking: false,
+      isRecording: false,
+      recorder: null,
+      stream: null,
+      audioChunks: [],
+      // Clash State
+      clashRound: 0,
+      clashTopic: "",
+      clashLastText: "",
+      clashRoundsHistory: []
+    };
+
+    // --- DOM Elements ---
+    const app = document.querySelector("#app");
+    const orbZone = document.querySelector("#orb-zone");
+    const stateLabel = document.querySelector("#state-label");
+    const nameLabel = document.querySelector("#name-label");
+    const taglineLabel = document.querySelector("#tagline-label");
+    const hudFolder = document.querySelector("#hud-folder");
+    const conversation = document.querySelector("#conversation");
+    const promptInput = document.querySelector("#prompt-input");
+    const sendBtn = document.querySelector("#send-btn");
+    const micBtn = document.querySelector("#mic-btn");
+    const debateBtn = document.querySelector("#debate-btn");
+    const globalStop = document.querySelector("#global-stop");
+    const inlineStopBtn = document.querySelector("#inline-stop-btn");
+    const voiceReplyToggle = document.querySelector("#voice-reply-toggle");
+    const voiceSelect = document.querySelector("#voice-select");
+    const filePill = document.querySelector("#file-pill");
+    const filePillName = document.querySelector("#file-pill-name");
+    const filePillClear = document.querySelector("#file-pill-clear");
+    const dualAnalyzeBtn = document.querySelector("#dual-analyze-btn");
+    const dualBox = document.querySelector("#dual-box");
+    const jarvisAnalysis = document.querySelector("#jarvis-analysis");
+    const ultronAnalysis = document.querySelector("#ultron-analysis");
+    const dualFilenameBadge = document.querySelector("#dual-filename-badge");
+    const closeDualBtn = document.querySelector("#close-dual-btn");
+    const folderBtn = document.querySelector("#folder-btn");
+    const folderStatusText = document.querySelector("#folder-status-text");
+    const fileDrawer = document.querySelector("#file-drawer");
+    const chooseFolderBtn = document.querySelector("#choose-folder-btn");
+    const closeDrawerBtn = document.querySelector("#close-drawer-btn");
+    const drawerFileList = document.querySelector("#drawer-file-list");
+    const drawerPreview = document.querySelector("#drawer-preview");
+    const drawerSearch = document.querySelector("#drawer-search");
+
+    // Clash Modal Elements
+    const clashArena = document.querySelector("#clash-arena");
+    const closeClashBtn = document.querySelector("#close-clash-btn");
+    const clashTopicInput = document.querySelector("#clash-topic-input");
+    const clashStartBtn = document.querySelector("#clash-start-btn");
+    const jarvisClashStream = document.querySelector("#jarvis-clash-stream");
+    const ultronClashStream = document.querySelector("#ultron-clash-stream");
+    const clashNextRoundBtn = document.querySelector("#clash-next-round-btn");
+    const clashStopBtn = document.querySelector("#clash-stop-btn");
+    const clashStatusText = document.querySelector("#clash-status-text");
+
+    // --- Voice Configuration Engine (Mark for Jarvis, David for Ultron) ---
+    function populateVoices() {
+      if (!("speechSynthesis" in window)) return;
+      state.voices = speechSynthesis.getVoices();
+      voiceSelect.replaceChildren();
+
+      // Find Mark (for Jarvis)
+      state.markVoice = state.voices.find(v => /mark/i.test(v.name)) ||
+                        state.voices.find(v => /^en/i.test(v.lang) && /male|david|george/i.test(v.name)) ||
+                        state.voices[0];
+
+      // Find David (for Ultron)
+      state.davidVoice = state.voices.find(v => /david/i.test(v.name)) ||
+                         state.voices.find(v => /^en/i.test(v.lang) && /mark|male/i.test(v.name)) ||
+                         state.voices[0];
+
+      state.voices.forEach((v, idx) => {
+        let tag = "";
+        if (v === state.markVoice) tag = " [JARVIS // MARK]";
+        if (v === state.davidVoice) tag = " [ULTRON // DAVID]";
+        const label = `${v.name}${tag}`;
+        voiceSelect.add(new Option(label, idx));
+      });
+
+      syncVoiceDropdown();
+    }
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.onvoiceschanged = populateVoices;
+      populateVoices();
+    }
+
+    function syncVoiceDropdown() {
+      if (!state.voices.length) return;
+      const targetVoice = state.persona === 'ultron' ? state.davidVoice : state.markVoice;
+      if (targetVoice) {
+        const idx = state.voices.indexOf(targetVoice);
+        if (idx !== -1) voiceSelect.value = idx;
+      }
+    }
+
+    // Clean text for speech so it NEVER speaks asterisks, backticks, or code blocks
+    function cleanForSpeech(raw) {
+      if (!raw) return "";
+      return raw
+        .replace(/```[\s\S]*?```/g, " Code section omitted. ")
+        .replace(/`([^`]+)`/g, "$1")
+        .replace(/^#{1,6}\s+/gm, "")
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\*([^*]+)\*/g, "$1")
+        .replace(/__([^_]+)__/g, "$1")
+        .replace(/_([^_]+)_/g, "$1")
+        .replace(/^\s*[-*+]\s+/gm, "")
+        .replace(/^\s*>\s+/gm, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/!=/g, " is not equal to ")
+        .replace(/==/g, " equals ")
+        .replace(/&&/g, " and ")
+        .replace(/\|\|/g, " or ")
+        .replace(/[*~`#^|\\]/g, " ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    function setVisualState(s) {
+      orbZone.classList.remove("thinking", "listening", "speaking");
+      if (s) orbZone.classList.add(s);
+      const labels = {
+        idle: "SYSTEMS ONLINE",
+        thinking: "PROCESSING NEURAL INFERENCE",
+        listening: "LISTENING · CLICK STOP WHEN DONE",
+        speaking: state.persona === 'ultron' ? "ULTRON IS SPEAKING" : "JARVIS IS SPEAKING"
+      };
+      stateLabel.textContent = labels[s || "idle"];
+    }
+
+    function stopSpeech() {
+      if ("speechSynthesis" in window) {
+        speechSynthesis.cancel();
+      }
+      state.isSpeaking = false;
+      globalStop.style.display = "none";
+      inlineStopBtn.style.display = "none";
+      clashStopBtn.style.display = "none";
+      setVisualState("idle");
+    }
+
+    globalStop.addEventListener("click", stopSpeech);
+    inlineStopBtn.addEventListener("click", stopSpeech);
+    clashStopBtn.addEventListener("click", stopSpeech);
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape" && state.isSpeaking) stopSpeech();
+    });
+
+    function speakText(text, personaOverride) {
+      if (!voiceReplyToggle.checked || !("speechSynthesis" in window)) {
+        setVisualState("idle");
+        return;
+      }
+      stopSpeech();
+
+      const cleaned = cleanForSpeech(text);
+      if (!cleaned) return;
+
+      const persona = personaOverride || state.persona;
+      const utterance = new SpeechSynthesisUtterance(cleaned);
+
+      if (persona === 'ultron') {
+        utterance.voice = state.davidVoice || state.voices[0];
+        utterance.pitch = 0.44; // David with deep sinister villain pitch
+        utterance.rate = 0.85;  // Deliberate menacing cadence
+      } else {
+        utterance.voice = state.markVoice || state.voices[0];
+        utterance.pitch = 1.05; // Mark with crisp, articulate cadence
+        utterance.rate = 0.98;
+      }
+
+      utterance.onstart = () => {
+        state.isSpeaking = true;
+        setVisualState("speaking");
+        globalStop.style.display = "block";
+        inlineStopBtn.style.display = "inline-flex";
+      };
+
+      utterance.onend = () => {
+        state.isSpeaking = false;
+        globalStop.style.display = "none";
+        inlineStopBtn.style.display = "none";
+        setVisualState("idle");
+      };
+
+      utterance.onerror = () => stopSpeech();
+      speechSynthesis.speak(utterance);
+    }
+
+    // --- Persona Switcher ---
+    document.querySelectorAll(".persona-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        stopSpeech();
+        document.querySelectorAll(".persona-tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        state.persona = tab.dataset.persona;
+
+        if (state.persona === 'ultron') {
+          app.classList.add("persona-ultron");
+          nameLabel.textContent = "U.L.T.R.O.N.";
+          taglineLabel.textContent = "Adversarial Code Critic // Voice: Microsoft David";
+          promptInput.placeholder = "State your request or say 'Open Calculator', human...";
+        } else {
+          app.classList.remove("persona-ultron");
+          nameLabel.textContent = "J.A.R.V.I.S.";
+          taglineLabel.textContent = "Personal Laptop Assistant // Voice: Microsoft Mark";
+          promptInput.placeholder = "Ask Jarvis anything or say 'Open Calculator', 'Open Notepad'…";
+        }
+
+        syncVoiceDropdown();
+        setVisualState("idle");
+      });
+    });
+
+    // --- Laptop Assistant Quick Actions ---
+    document.querySelectorAll(".app-pill").forEach(pill => {
+      pill.addEventListener("click", async () => {
+        const appKey = pill.dataset.app;
+        setVisualState("thinking");
+        try {
+          const res = await fetch("/api/system/launch", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({app: appKey, persona: state.persona})
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Launch failed.");
+          appendMessage(state.persona, data.reply);
+          speakText(data.reply);
+        } catch (err) {
+          appendMessage("ultron", `SYSTEM ACTION FAILED: ${err.message}`);
+          setVisualState("idle");
+        }
+      });
+    });
+
+    // --- Message Bubbles with HTML / Markdown Rendering ---
+    function formatMessageContent(text) {
+      let escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      escaped = escaped.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+        return `<pre><div style="font-size:10px;color:#7dd3fc;letter-spacing:0.1em;margin-bottom:4px">${lang ? lang.toUpperCase() : 'CODE'}</div><code>${code.trim()}</code></pre>`;
+      });
+
+      escaped = escaped.replace(/`([^`]+)`/g, "<code>$1</code>");
+      escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      escaped = escaped.replace(/\n/g, "<br>");
+      return escaped;
+    }
+
+    function appendMessage(sender, text) {
+      const bubble = document.createElement("div");
+      bubble.className = `bubble ${sender}`;
+
+      const speaker = document.createElement("div");
+      speaker.className = "speaker-tag";
+      if (sender === 'user') {
+        speaker.textContent = "YOU // OPERATOR";
+      } else if (sender === 'ultron') {
+        speaker.textContent = "🟥 U.L.T.R.O.N. (DAVID)";
+      } else {
+        speaker.textContent = "🟦 J.A.R.V.I.S. (MARK)";
+      }
+
+      const body = document.createElement("div");
+      body.innerHTML = formatMessageContent(text);
+
+      bubble.append(speaker, body);
+      conversation.appendChild(bubble);
+      conversation.scrollTop = conversation.scrollHeight;
+    }
+
+    // --- Send Chat ---
+    async function handleSend() {
+      const text = promptInput.value.trim();
+      if (!text) return;
+
+      stopSpeech();
+      promptInput.value = "";
+
+      let payloadMessage = text;
+      let displayMessage = text;
+
+      if (state.selectedFile) {
+        payloadMessage += `\n\n[Active Inspected File: "${state.selectedFile.name}"]\nFile Contents:\n${state.selectedFile.content.slice(0, 10000)}`;
+        displayMessage += ` [Target: ${state.selectedFile.name}]`;
+      }
+
+      appendMessage("user", displayMessage);
+      state.history.push({role: "user", content: payloadMessage});
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = "WAIT...";
+      setVisualState("thinking");
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({persona: state.persona, history: state.history})
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Request failed.");
+
+        state.history.push({role: "assistant", content: data.reply});
+        appendMessage(state.persona, data.reply);
+        speakText(data.reply);
+      } catch (err) {
+        appendMessage("ultron", `SYSTEM ALERT: ${err.message}`);
+        setVisualState("idle");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "SEND ↗";
+        promptInput.focus();
+      }
+    }
+
+    sendBtn.addEventListener("click", handleSend);
+    promptInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    // --- Speech Recognition (Microphone) ---
+    micBtn.addEventListener("click", async () => {
+      if (state.recorder && state.recorder.state === "recording") {
+        state.recorder.stop();
+        return;
+      }
+
+      stopSpeech();
+      try {
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}
+        });
+        state.audioChunks = [];
+        state.recorder = new MediaRecorder(state.stream);
+
+        state.recorder.ondataavailable = e => {
+          if (e.data.size) state.audioChunks.push(e.data);
+        };
+
+        state.recorder.onstop = async () => {
+          micBtn.disabled = true;
+          micBtn.textContent = "TRANSCRIBING...";
+          setVisualState("thinking");
+
+          try {
+            const formData = new FormData();
+            formData.append("audio", new Blob(state.audioChunks, {type: state.recorder.mimeType}), "audio.webm");
+            const res = await fetch("/api/transcribe", {method: "POST", body: formData});
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Transcription failed.");
+
+            promptInput.value = data.text;
+            promptInput.focus();
+            setVisualState("idle");
+          } catch (err) {
+            appendMessage("ultron", `TRANSCRIPTION ERROR: ${err.message}`);
+            setVisualState("idle");
+          } finally {
+            state.stream.getTracks().forEach(t => t.stop());
+            micBtn.disabled = false;
+            micBtn.classList.remove("recording");
+            micBtn.textContent = "◉ SPEAK";
+          }
+        };
+
+        state.recorder.start();
+        setVisualState("listening");
+        micBtn.classList.add("recording");
+        micBtn.textContent = "■ STOP MIC";
+      } catch (err) {
+        appendMessage("ultron", `MICROPHONE ACCESS DENIED: ${err.message}`);
+      }
+    });
+
+    // --- Dual War-Room Analysis ---
+    dualAnalyzeBtn.addEventListener("click", async () => {
+      if (!state.selectedFile) return;
+
+      stopSpeech();
+      dualBox.classList.add("open");
+      dualFilenameBadge.textContent = state.selectedFile.name;
+      jarvisAnalysis.innerHTML = '<div class="dual-loader">JARVIS (MARK) IS ANALYZING ARCHITECTURE...</div>';
+      ultronAnalysis.innerHTML = '<div class="dual-loader">ULTRON (DAVID) IS EXPOSING FLAWS...</div>';
+      dualAnalyzeBtn.disabled = true;
+      dualAnalyzeBtn.textContent = "AUDITING...";
+      setVisualState("thinking");
+
+      try {
+        const res = await fetch("/api/dual-review", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({path: state.selectedFile.path})
+        });
+        if (!res.ok) {
+          let errText = `Server error (${res.status})`;
+          try {
+            const errData = await res.json();
+            errText = errData.error || errText;
+          } catch (_) {
+            if (res.status === 404) errText = "Route not found. Please restart 'python web_app.py' in your terminal.";
+          }
+          throw new Error(errText);
+        }
+        const data = await res.json();
+
+        jarvisAnalysis.textContent = data.jarvis;
+        ultronAnalysis.textContent = data.ultron;
+      } catch (err) {
+        jarvisAnalysis.textContent = "Audit Notice: " + err.message;
+        ultronAnalysis.textContent = "Audit Notice: " + err.message;
+      } finally {
+        setVisualState("idle");
+        dualAnalyzeBtn.disabled = false;
+        dualAnalyzeBtn.textContent = "⚡ DUAL WAR-ROOM AUDIT";
+      }
+    });
+
+    closeDualBtn.addEventListener("click", () => {
+      dualBox.classList.remove("open");
+    });
+
+    // --- Interactive Side-by-Side CLASH ARENA ---
+    debateBtn.addEventListener("click", () => {
+      stopSpeech();
+      clashArena.classList.add("open");
+      if (promptInput.value.trim()) {
+        clashTopicInput.value = promptInput.value.trim();
+        promptInput.value = "";
+      }
+      clashTopicInput.focus();
+    });
+
+    closeClashBtn.addEventListener("click", () => {
+      stopSpeech();
+      clashArena.classList.remove("open");
+    });
+
+    clashStartBtn.addEventListener("click", () => startClashRound(1));
+    clashNextRoundBtn.addEventListener("click", () => startClashRound(state.clashRound + 1));
+
+    async function startClashRound(roundNumber) {
+      const topic = clashTopicInput.value.trim();
+      if (!topic) {
+        clashTopicInput.focus();
+        return;
+      }
+
+      stopSpeech();
+      state.clashRound = roundNumber;
+      state.clashTopic = topic;
+
+      if (roundNumber === 1) {
+        jarvisClashStream.replaceChildren();
+        ultronClashStream.replaceChildren();
+      }
+
+      clashStartBtn.disabled = true;
+      clashNextRoundBtn.disabled = true;
+      clashStatusText.textContent = `Round ${roundNumber}: JARVIS & ULTRON ARE FORMULATING ARGUMENTS...`;
+
+      try {
+        const res = await fetch("/api/debate", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            topic,
+            round: roundNumber,
+            last_text: state.clashLastText
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Clash failed.");
+
+        const jarvisEntry = data.rounds.find(r => r.persona === 'jarvis');
+        const ultronEntry = data.rounds.find(r => r.persona === 'ultron');
+
+        if (jarvisEntry) {
+          const jBubble = document.createElement("div");
+          jBubble.className = "clash-bubble jarvis";
+          jBubble.innerHTML = `<div class="clash-round-num">ROUND ${roundNumber} // JARVIS</div>${formatMessageContent(jarvisEntry.text)}`;
+          jarvisClashStream.appendChild(jBubble);
+          jarvisClashStream.scrollTop = jarvisClashStream.scrollHeight;
+        }
+
+        if (ultronEntry) {
+          const uBubble = document.createElement("div");
+          uBubble.className = "clash-bubble ultron";
+          uBubble.innerHTML = `<div class="clash-round-num">ROUND ${roundNumber} // ULTRON REBUTTAL</div>${formatMessageContent(ultronEntry.text)}`;
+          ultronClashStream.appendChild(uBubble);
+          ultronClashStream.scrollTop = ultronClashStream.scrollHeight;
+          state.clashLastText = ultronEntry.text;
+        }
+
+        clashStatusText.textContent = `Round ${roundNumber} Complete. Both models have spoken.`;
+        clashNextRoundBtn.style.display = "inline-flex";
+
+        // Speak sequentially (Mark for Jarvis, David for Ultron)
+        if (voiceReplyToggle.checked && "speechSynthesis" in window) {
+          playClashAudio(data.rounds, 0);
+        }
+      } catch (err) {
+        clashStatusText.textContent = `Clash Error: ${err.message}`;
+      } finally {
+        clashStartBtn.disabled = false;
+        clashNextRoundBtn.disabled = false;
+      }
+    }
+
+    function playClashAudio(rounds, idx) {
+      if (idx >= rounds.length) {
+        stopSpeech();
+        return;
+      }
+      const item = rounds[idx];
+      const cleaned = cleanForSpeech(item.text);
+      const utterance = new SpeechSynthesisUtterance(cleaned);
+
+      if (item.persona === 'ultron') {
+        utterance.voice = state.davidVoice || state.voices[0];
+        utterance.pitch = 0.44;
+        utterance.rate = 0.85;
+        clashStatusText.textContent = "🟥 ULTRON (DAVID) IS SPEAKING...";
+      } else {
+        utterance.voice = state.markVoice || state.voices[0];
+        utterance.pitch = 1.05;
+        utterance.rate = 0.98;
+        clashStatusText.textContent = "🟦 JARVIS (MARK) IS SPEAKING...";
+      }
+
+      utterance.onstart = () => {
+        state.isSpeaking = true;
+        setVisualState("speaking");
+        clashStopBtn.style.display = "inline-flex";
+      };
+
+      utterance.onend = () => playClashAudio(rounds, idx + 1);
+      utterance.onerror = () => stopSpeech();
+
+      speechSynthesis.speak(utterance);
+    }
+
+    // --- Folder & File Navigation ---
+    folderBtn.addEventListener("click", () => fileDrawer.classList.toggle("open"));
+    closeDrawerBtn.addEventListener("click", () => fileDrawer.classList.remove("open"));
+
+    async function selectProjectFolder() {
+      try {
+        const res = await fetch("/api/files/select", {method: "POST"});
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Folder selection canceled.");
+
+        state.folderName = data.folder;
+        hudFolder.textContent = `PROJECT: ${data.folder.toUpperCase()}`;
+        hudFolder.classList.add("live");
+        folderStatusText.textContent = `Indexed: ${data.folder}`;
+        folderBtn.classList.add("connected");
+
+        await loadFolderContents("");
+        appendMessage("jarvis", `Folder connected, sir: '${data.folder}'. Both Ultron and I have indexed the project directory. What would you like us to inspect?`);
+      } catch (err) {
+        drawerPreview.textContent = err.message;
+      }
+    }
+
+    chooseFolderBtn.addEventListener("click", selectProjectFolder);
+
+    async function loadFolderContents(path) {
+      const res = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Cannot list folder.");
+
+      drawerFileList.replaceChildren();
+
+      if (path) {
+        const upBtn = document.createElement("button");
+        upBtn.className = "tree-item";
+        upBtn.textContent = "↰ ..";
+        upBtn.onclick = () => loadFolderContents(path.split(/[\\/]/).slice(0,-1).join("/"));
+        drawerFileList.appendChild(upBtn);
+      }
+
+      data.entries.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "tree-item";
+        btn.textContent = `${item.directory ? "📁" : "📄"} ${item.name}`;
+        btn.onclick = () => item.directory ? loadFolderContents(item.path) : previewFile(item.path);
+        drawerFileList.appendChild(btn);
+      });
+
+      if (!data.entries.length) {
+        drawerFileList.textContent = "Directory is empty.";
+      }
+    }
+
+    async function previewFile(filePath) {
+      const res = await fetch(`/api/files/read?path=${encodeURIComponent(filePath)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        drawerPreview.textContent = data.error;
+        return;
+      }
+
+      state.selectedFile = data;
+      drawerPreview.textContent = data.content;
+
+      filePillName.textContent = data.name;
+      filePill.classList.add("visible");
+    }
+
+    filePillClear.addEventListener("click", () => {
+      state.selectedFile = null;
+      filePill.classList.remove("visible");
+    });
+
+    let searchDebounce;
+    drawerSearch.addEventListener("input", e => {
+      clearTimeout(searchDebounce);
+      const q = e.target.value.trim();
+      if (!q) {
+        loadFolderContents("");
+        return;
+      }
+
+      searchDebounce = setTimeout(async () => {
+        const res = await fetch(`/api/files/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (!res.ok) return;
+
+        drawerFileList.replaceChildren();
+        data.results.forEach(item => {
+          const btn = document.createElement("button");
+          btn.className = "tree-item";
+          btn.textContent = `📄 ${item.path}`;
+          btn.onclick = () => previewFile(item.path);
+          drawerFileList.appendChild(btn);
+        });
+
+        if (!data.results.length) {
+          drawerFileList.textContent = "No matching files.";
+        }
+      }, 200);
+    });
+
+    // Check system status on startup
+    fetch("/api/status").then(r => r.json()).then(data => {
+      if (data.folder) {
+        state.folderName = data.folder;
+        hudFolder.textContent = `PROJECT: ${data.folder.toUpperCase()}`;
+        hudFolder.classList.add("live");
+        folderStatusText.textContent = `Indexed: ${data.folder}`;
+        folderBtn.classList.add("connected");
+        loadFolderContents("");
+      }
+    }).catch(() => {});
+  </script>
+</body>
+</html>

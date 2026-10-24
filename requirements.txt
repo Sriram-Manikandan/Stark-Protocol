@@ -1,6 +1,8 @@
 requests
 pyttsx3
 faster-whisper
+av<19
 sounddevice
 soundfile
 numpy
+flask
